@@ -1,12 +1,16 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Task;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    public function users() {
+    public function users()
+    {
         $user = User::all();
         return response()->json([
             'status' => "success",
@@ -16,7 +20,8 @@ class UserController extends Controller
     }
 
     // for one user 
-    public function showuser($id){
+    public function showuser($id)
+    {
         $showuser = User::findOrFail($id);
         return response()->json([
             'status' => "sucess",
@@ -24,28 +29,41 @@ class UserController extends Controller
         ]);
     }
 
-    // post new user 
-    public function insert(Request $request) {
-       $request->validate([
-        'name' => 'required',
-        'email' => 'required|email',
-        'password' => 'required',
-    
-       ]);
-       
-       $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-       ]);
+    // add new task 
+    public function addnewTask(Request $request)
+    {
+        try {
+            $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'task_name' => 'required|string',
+                'description' => 'required|string',
+            ]);
 
-       return response()->json([
-        'status' => "success",
-        'data' => $user,
-       ]);
-       
+            $task = Task::create([
+                'user_id' => $request->user_id,
+                'task_name' => $request->task_name,
+                'description' => $request->description,
+            ]);
+            Log::info("User Logout Successfully");
+            return response()->json([
+                'status' => true,
+                'data' => $task,
+            ], 201);
+        } catch (\Throwable $th) {
+            Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Something Went Wrong'
+            ], 500);
+        }
     }
 
-    
-
+    // delete task 
+    public function deleteTask() {
+        try {
+            
+        } catch (\Throwable $th) {
+           
+        }
+    }
 }
