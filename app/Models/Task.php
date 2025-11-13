@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
+    use SoftDeletes;
      protected $fillable = [
         'user_id',
         'task_name',
@@ -15,6 +17,8 @@ class Task extends Model
         'status',
         'is_deleted',
         'updated_at',
+        'deleted_at',
+        
 
 
     ];
