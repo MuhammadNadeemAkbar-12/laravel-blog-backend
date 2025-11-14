@@ -7,9 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "ext-pdo_mysql": "*",
         "laravel/framework": "^12.0",
-        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {
@@ -41,10 +39,6 @@
             "@php artisan migrate --force",
             "npm install",
             "npm run build"
-        ],
-        "pre-dev": [
-            "@php -r \"if (!file_exists('vendor/autoload.php')) { fwrite(STDERR, 'Missing vendor/autoload.php. Run \\\"composer install\\\" first.' . PHP_EOL); exit(1); }\"",
-            "@php -r \"if (!is_dir('node_modules')) { fwrite(STDERR, 'Missing node_modules directory. Run \\\"npm install\\\" first.' . PHP_EOL); exit(1); }\""
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",

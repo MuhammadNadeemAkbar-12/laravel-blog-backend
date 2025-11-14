@@ -13,25 +13,7 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function users()
-    {
-        $user = User::all();
-        return response()->json([
-            'status' => "success",
-            'total' => $user->count(),
-            'data' => $user,
-        ]);
-    }
 
-    // for one user 
-    public function showuser($id)
-    {
-        $showuser = User::findOrFail($id);
-        return response()->json([
-            'status' => "sucess",
-            'user' => $showuser,
-        ]);
-    }
 
     // add new task 
     public function addnewTask(Request $request)
@@ -63,32 +45,49 @@ class UserController extends Controller
     }
 
     // delete task 
-    public function deleteTask($id)
+public function deleteTask($id)
     {
         try {
-            $task = Task::find($id);
-            $task->delete();
-
-            // for restore user post 
-            // $task = Task::withTrashed()->find($id);
-            // $task->restore();
-            Log::info("Task Delete Successfully");
-            return response()->json([
-                'status' => true,
-                'data' => $task,
-            ], 200);
-        } catch (\Throwable $th) {
-            Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
+            $deleteTask = Task::find($id);
+             if (!$deleteTask) {
+                return response()->json([
+                'status' => false,
+                'message' => 'Task not found',
+            ], 404);
+        }
+        if ($deleteTask->user_id !== Auth::id()) {
+            Log::warning("Unauthorized delete attempt", [
+                'task_id' => $id,
+                'task_owner' => $deleteTask->user_id,
+                'current_user' => Auth::id()
+            ]);
             return response()->json([
                 'status' => false,
-                'message' => 'Something Went Wrong'
+                'message' => 'Unauthorized: You can only delete your own tasks',
+            ], 403);
+        }
+
+
+            $deleteTask->delete();
+            Log::info("User profile", ['id' => $deleteTask->id]);
+            return response()->json([
+                'status' => true,
+                'message' => 'Task Delete successfully',
+                'data' => $deleteTask,
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error("Something went wrong", ['message' => $th->getMessage()]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong',
             ], 500);
         }
     }
     // view user his task 
-    public function userOwnTask($user_id)
+    public function userOwnTask()
     {
         try {
+            $user_id = Auth::id();
             $task = Task::where('user_id', $user_id)->get();
             Log::info("User Task Fectched Successfully");
             return response()->json([
@@ -150,14 +149,40 @@ class UserController extends Controller
         }
     }
 
+    // pagination limit 6 users 
+    public function userOwnTaskPagination()
+    {
+        $user_id = Auth::id();
+        try {
+            $task = Task::where('user_id', $user_id)
+                ->orderBy('created_at', 'DESC')
+                ->limit(6)
+                ->get();
+
+            Log::info("User Task Fectched Successfully");
+            return response()->json([
+                'status' => true,
+                'message' => 'User Task Fectched Successfully',
+                'total_task' => $task->count(),
+                'data' => $task,
+
+            ], 200);
+        } catch (\Throwable $th) {
+            Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Something Went Wrong'
+            ], 500);
+        }
+    }
+
     // user profile 
-    public function userProfile($id)
+    public function userProfile()
     {
         try {
-            $user_id = Auth::id();
-            $profile = User::where('id', $id)
-                       ->where('id', $user_id)
-                       ->first();
+            // $user_id = Auth::id();
+            $profile = User::where('id', Auth::id())
+                ->first();
             Log::info("User profile", ['user_id' => $profile->id]);
             return response()->json([
                 'status' => true,

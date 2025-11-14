@@ -10,14 +10,11 @@ use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
-    public function userNotification($id)
+    public function userNotification()
     {
         $user_id = Auth::id();
         try {
-            
-
-            $notification = Notification::where('id', $id)
-                ->where('user_id', $user_id)->where('is_read', 1)->orderBy('created_at', 'desc')->first();
+            $notification = Notification::where('user_id', $user_id)->where('is_read', 1)->orderBy('created_at', 'desc')->first();
             if (!$notification) {
                 return response()->json([
                     'status' => false,
