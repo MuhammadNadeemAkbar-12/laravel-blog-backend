@@ -8,30 +8,22 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Traits\ApiResponse;
 
 class AdminController extends Controller
 {
-    // all users method 
+    use ApiResponse; 
+
+    // All Users Method
     public function allUsers()
     {
         try {
-            $post = User::all();
-            Log::info("Users fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'Users fetch successfully',
-                    'total' => $post->count(),
-                    'data' => $post,
-                ],
-                200
-            );
+            $users = User::all();
+            Log::info("Users fetched successfully");
+            return $this->success($users, "Users fetched successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
 
@@ -41,20 +33,10 @@ class AdminController extends Controller
         try {
             $post = User::find($id);
             Log::info("Users fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'User fetch successfully',
-                    'data' => $post,
-                ],
-                200
-            );
+            return $this->success($post, "User fecth success fully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'User not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
 
@@ -65,93 +47,51 @@ class AdminController extends Controller
         try {
             $allTasks = Task::all();
             Log::info("Tasks fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'Tasks fetch successfully',
-                    'total' => $allTasks->count(),
-                    'data' => $allTasks,
-                ],
-                200
-            );
+            return $this->success($allTasks, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
+
     //    single Task 
     public function oneTask($id)
     {
         try {
             $allTasks = Task::find($id);
             Log::info("Task fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'Task fetch successfully',
-                    'data' => $allTasks,
-                ],
-                200
-            );
+            return $this->success($allTasks, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Task not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
 
 
-    //    approve tasks 
+    //    rejected tasks 
     public function allRejectTask()
     {
         try {
             $RejectTasks = Task::where('status', 'rejected')->orderBy('created_at', 'DESC')->get();
             Log::info("Tasks fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'Reject task fetch successfully',
-                    'total' => $RejectTasks->count(),
-                    'data' => $RejectTasks,
-                ],
-                200
-            );
+            return $this->success($RejectTasks, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
 
 
-    // rejected tasks 
+    // approved tasks 
     public function allApproveTask()
     {
         try {
             $ApproveTasks = Task::where('status', 'approved')->orderBy('created_at', 'DESC')->get();
             Log::info("Tasks fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'Approve task fetch successfully',
-                    'total' => $ApproveTasks->count(),
-                    'data' => $ApproveTasks,
-                ],
-                200
-            );
+            return $this->success($ApproveTasks, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
 
@@ -161,21 +101,10 @@ class AdminController extends Controller
         try {
             $PendingTasks = Task::where('status', 'pending')->orderBy('created_at', 'DESC')->get();
             Log::info("Tasks fetch successfully");
-            return response()->json(
-                [
-                    'status' => true,
-                    'message' => 'Pending task fetch successfully',
-                    'total' => $PendingTasks->count(),
-                    'data' => $PendingTasks,
-                ],
-                200
-            );
+            return $this->success($PendingTasks, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 404);
+            return $this->error(null, "Data not fetched");
         }
     }
     //  current loign user post 
@@ -187,26 +116,16 @@ class AdminController extends Controller
             $loginUserTask = Task::where('user_id', $user_id)->get();
             if (!$loginUserTask) {
                 Log::warning("Task not found for user: $user_id");
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Task not found',
-                    'totalUserTask' => $loginUserTask->count(),
-                ], 404);
+                return $this->error(null, "Data not fetched");
+               
+
             }
 
             Log::info("Task fetched successfully for user: $user_id");
-
-            return response()->json([
-                'status' => true,
-                'message' => 'User task fetched successfully',
-                'data' => $loginUserTask,
-            ], 200);
+            return $this->success($loginUserTask, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 500);
+            return $this->error(null, "Data not fetched");
         }
     }
 
@@ -218,18 +137,10 @@ class AdminController extends Controller
             $user_id = Auth::id();
             $adminPagination = Task::where('user_id', $user_id)->limit(6)->orderBy('created_at', 'DESC')->get();
             Log::info("Task fetched successfully for user: $user_id");
-            return response()->json([
-                'status' => true,
-                'message' => 'User task fetched successfully',
-                'total_tasks' => $adminPagination->count(),
-                'data' => $adminPagination,
-            ], 200);
+            return $this->success($adminPagination, "Tasks fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Data not fetched',
-            ], 500);
+            return $this->error(null, "Data not fetched");
         }
     }
 
@@ -237,7 +148,6 @@ class AdminController extends Controller
     // add admin tasks 
     public function addTask(Request $request)
     {
-        $user_id = Auth::id();
 
         try {
             $request->validate([
@@ -251,38 +161,25 @@ class AdminController extends Controller
                 'description' => $request->description,
                 'status' => 'approved',
             ]);
-            Log::info("User Logout Successfully");
-            return response()->json([
-                'status' => true,
-                'data' => $task,
-            ], 201);
+            Log::info("Task add Successfully");
+            return $this->success($task, "Tasks add successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something Went Wrong'
-            ], 500);
+            return $this->error(null, "Data not fetched");
         }
     }
+
     //    admin profile 
-    public function AdminProfile(Request $request)
+    public function AdminProfile()
     {
         try {
             // $user_id = Auth::id();
-            $profile = User::where('id', Auth::id())
-                ->first();
+            $profile = User::where('id', Auth::id())->first();
             Log::info("User profile", ['user_id' => $profile->id]);
-            return response()->json([
-                'status' => true,
-                'message' => 'Task updated successfully',
-                'data' => $profile,
-            ], 200);
+            return $this->success($profile, "Profile fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something went wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-            ], 500);
+            return $this->error(null, "Data not fetched");
         }
     }
 
@@ -291,38 +188,23 @@ class AdminController extends Controller
     {
         try {
             $deleteTask = Task::find($id);
-             if (!$deleteTask) {
-                return response()->json([
-                'status' => false,
-                'message' => 'Task not found',
-            ], 404);
-        }
-        if ($deleteTask->user_id !== Auth::id()) {
-            Log::warning("Unauthorized delete attempt", [
-                'task_id' => $id,
-                'task_owner' => $deleteTask->user_id,
-                'current_user' => Auth::id()
-            ]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized: You can only delete your own tasks',
-            ], 403);
-        }
-
-
+            if (!$deleteTask) {
+                return $this->error(null, "On this id data not found fetched");
+            }
+            if ($deleteTask->user_id !== Auth::id()) {
+                Log::warning("Unauthorized delete attempt", [
+                    'task_id' => $id,
+                    'task_owner' => $deleteTask->user_id,
+                    'current_user' => Auth::id()
+                ]);
+                return $this->error(null, "Unauthorized: You can only delete your own tasks", 403);
+            }
             $deleteTask->delete();
             Log::info("User profile", ['id' => $deleteTask->id]);
-            return response()->json([
-                'status' => true,
-                'message' => 'Task Delete successfully',
-                'data' => $deleteTask,
-            ], 200);
+            return $this->success($deleteTask, "Task delete successfully");
         } catch (\Throwable $th) {
             Log::error("Something went wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-            ], 500);
+            return $this->error(null, "Data not fetched");
         }
     }
 }
