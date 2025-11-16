@@ -26,9 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', [UserController::class, 'userProfile']);
         Route::post('/owntaskpagination', [UserController::class, "userOwnTaskPagination"]);
         Route::post('/delete-task/{id}', [UserController::class, 'deleteTask']);
-        Route::post('/add-task', [UserController::class, 'addnewTask']);
+        Route::post('/add-task', [UserController::class, 'addNewTask']);
         Route::get('/own-task', [UserController::class, 'userOwnTask']);
-        Route::put('/task-edit/{id}', [UserController::class, 'editTask']);
+        Route::post('/task-edit/{id}', [UserController::class, 'editTask']);
     });
     
     // admin 
@@ -61,10 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-Route::get('/tasks', [TasksController::class, "task"]);
-Route::get('/tasks/approved', [TasksController::class, "allApproveTask"]);
-Route::get('/comments', [CommentsController::class, "comments"]);
-Route::get('/comments/{id}', [CommentsController::class, "showUserComment"]);
-Route::get('/permissions', [PermissionController::class, "permission"]);
-Route::get('/role-permissions', [RolePermissionsController::class, "userRolePermissions"]);
-Route::get('/roles', [RoleController::class, "Roles"]);
+// Route::get('/tasks', [TasksController::class, "task"]);
+// Route::get('/tasks/approved', [TasksController::class, "allApproveTask"]);
+// Route::get('/comments', [CommentsController::class, "comments"]);
+// Route::get('/comments/{id}', [CommentsController::class, "showUserComment"]);
+// Route::get('/permissions', [PermissionController::class, "permission"]);
+// Route::get('/role-permissions', [RolePermissionsController::class, "userRolePermissions"]);
+// Route::get('/roles', [RoleController::class, "Roles"]);

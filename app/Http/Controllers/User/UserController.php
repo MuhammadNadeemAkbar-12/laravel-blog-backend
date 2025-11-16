@@ -9,99 +9,68 @@ use App\Models\User;
 use App\Models\Task;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TaskUpdateRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\ApiResponse;
+class UserController extends Controller{
 
-class UserController extends Controller
-{
-
+    use ApiResponse;
 
     // add new task 
-    public function addnewTask(Request $request)
-    {
-        try {
-            $request->validate([
-                'user_id' => 'required|integer|exists:users,id',
-                'task_name' => 'required|string',
-                'description' => 'required|string',
-            ]);
+    public function addNewTask(TaskUpdateRequest $request){
+    try {
+        $task = Task::create([
+            'user_id' => Auth::id(), 
+            'task_name' => $request->task_name,
+            'description' => $request->description,
+        ]);
 
-            $task = Task::create([
-                'user_id' => $request->user_id,
-                'task_name' => $request->task_name,
-                'description' => $request->description,
-            ]);
-            Log::info("User Logout Successfully");
-            return response()->json([
-                'status' => true,
-                'data' => $task,
-            ], 201);
-        } catch (\Throwable $th) {
-            Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something Went Wrong'
-            ], 500);
-        }
+        Log::info("Task Created Successfully", ['task_id' => $task->id]);
+        return $this->success($task, "Task Created Successfully", 201);
+
+    } catch (\Throwable $th) {
+        Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
+        return $this->error(null, "Task not added", 500);
     }
-
+}
     // delete task 
-public function deleteTask($id)
+    public function deleteTask($id)
     {
         try {
             $deleteTask = Task::find($id);
-             if (!$deleteTask) {
-                return response()->json([
-                'status' => false,
-                'message' => 'Task not found',
-            ], 404);
-        }
-        if ($deleteTask->user_id !== Auth::id()) {
-            Log::warning("Unauthorized delete attempt", [
-                'task_id' => $id,
-                'task_owner' => $deleteTask->user_id,
-                'current_user' => Auth::id()
-            ]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized: You can only delete your own tasks',
-            ], 403);
-        }
-
+            if (!$deleteTask) {
+                return $this->error(null, "Task not found");
+            }
+            if ($deleteTask->user_id !== Auth::id()) {
+                Log::warning("Unauthorized delete attempt", [
+                    'task_id' => $id,
+                    'task_owner' => $deleteTask->user_id,
+                    'current_user' => Auth::id()
+                ]);
+                return $this->error(null, "Unauthorized: You can only delete your own tasks", 403);
+            }
 
             $deleteTask->delete();
             Log::info("User profile", ['id' => $deleteTask->id]);
-            return response()->json([
-                'status' => true,
-                'message' => 'Task Delete successfully',
-                'data' => $deleteTask,
-            ], 200);
+            return $this->success($deleteTask, "Task Delete successfully");
+
         } catch (\Throwable $th) {
             Log::error("Something went wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-            ], 500);
+            return $this->error(null, "Something went wrong");
         }
     }
     // view user his task 
     public function userOwnTask()
     {
         try {
-            $user_id = Auth::id();
-            $task = Task::where('user_id', $user_id)->get();
-            Log::info("User Task Fectched Successfully");
-            return response()->json([
-                'status' => true,
-                'message' => 'User Task Fectched Successfully',
-                'data' => $task,
 
-            ], 200);
+            $task = Task::where('user_id', Auth::id())->get();
+            Log::info("User Task Fectched Successfully");
+            return $this->success($task, "Task Fectched Successfully");
+
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something Went Wrong'
-            ], 500);
+            return $this->error(null, "User Task Not Fectched");
         }
     }
 
@@ -109,14 +78,8 @@ public function deleteTask($id)
     public function editTask(Request $request, $id)
     {
         try {
-            // Logged-in user ID
-            $userId =  Auth::id();
-
             // Find the task belonging to the logged-in user
-            $task = Task::where('id', $id)
-                ->where('user_id', $userId)
-                ->first();
-
+            $task = Task::where('id', $id)->where('user_id', Auth::id())->first();
             if (!$task) {
                 return response()->json([
                     'status' => false,
@@ -132,20 +95,11 @@ public function deleteTask($id)
 
             // Update task
             $task->update($validatedData);
-
             Log::info("Task updated successfully", ['task_id' => $task->id]);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Task updated successfully',
-                'data' => $task,
-            ], 200);
+            return $this->success($task, "Profile fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something went wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-            ], 500);
+            return $this->error(null, "Something went wrong");
         }
     }
 
@@ -154,25 +108,15 @@ public function deleteTask($id)
     {
         $user_id = Auth::id();
         try {
-            $task = Task::where('user_id', $user_id)
-                ->orderBy('created_at', 'DESC')
+            $task = Task::where('user_id', $user_id)->orderBy('created_at', 'DESC')
                 ->limit(6)
                 ->get();
 
             Log::info("User Task Fectched Successfully");
-            return response()->json([
-                'status' => true,
-                'message' => 'User Task Fectched Successfully',
-                'total_task' => $task->count(),
-                'data' => $task,
-
-            ], 200);
+            return $this->success($task, "Task Fectched Successfully");
         } catch (\Throwable $th) {
             Log::error("Something Went Wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something Went Wrong'
-            ], 500);
+            return $this->error(null, "Profile not fetched");
         }
     }
 
@@ -181,20 +125,12 @@ public function deleteTask($id)
     {
         try {
             // $user_id = Auth::id();
-            $profile = User::where('id', Auth::id())
-                ->first();
+            $profile = User::where('id', Auth::id())->first();
             Log::info("User profile", ['user_id' => $profile->id]);
-            return response()->json([
-                'status' => true,
-                'message' => 'Task updated successfully',
-                'data' => $profile,
-            ], 200);
+            return $this->success($profile, "Profile fetch successfully");
         } catch (\Throwable $th) {
             Log::error("Something went wrong", ['message' => $th->getMessage()]);
-            return response()->json([
-                'status' => false,
-                'message' => 'Something went wrong',
-            ], 500);
+            return $this->error(null, "Profile not fetched");
         }
     }
 }
