@@ -4,89 +4,61 @@ namespace App\Http\Controllers\Auth;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\StoreUserRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Traits\ApiResponse;
+
+
+use function Laravel\Prompts\error;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
     // for user register -------------------------------
-    public function signup(Request $request)
+    public function signup(StoreUserRequest $request)
     {
-        $Validateuser = Validator::make(
-            $request->all(),
-            [
-                'name' => 'required||string|min:3|max:50|regex:/^[a-zA-Z\s]+$/',
-                'email' => 'required||string|max:255|email|unique:users,email',
-                'password' => 'required|max:255|confirmed',
+        try {
 
-            ]
-        );
-        if ($Validateuser->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => "Required all inputs",
-                'errors' => $Validateuser->errors()->first(),
 
-            ], 401);
+            $validated = $request->validated();
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'role_id' => $validated['role_id'] ?? 1,
+            ]);
+            return $this->success($user, "User register successfully", 200);
+        } catch (\Exception $e) {
+            Log::error("User Registration Failed", ['message' => $e->getMessage()]);
+            return $this->error(null, "User Registration Failed", 500);
         }
-        // user create 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
-        return response()->json([
-            'status' => true,
-            'message' => 'User register succesfully',
-            'data' => $user,
-        ], 200);
     }
 
     // for login user ----------------------------------------
     public function login(Request $request)
     {
         try {
-             $userValidate = Validator::make(
-            $request->all(),
-            [
-                'email' => 'required|string|max:255|email',
-                'password' => 'required|max:255',
-            ]
-        );
-
-         // Auth attempt 
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $Authuser = Auth::user();
-            return response()->json([
-                'status' => true,
-                'message' => "User login successfully",
-                'token' => $Authuser->createToken('auth_token')->plainTextToken,
-                'token_type' => 'bearer',
-            ], 200);
-        }else {
-            return response()->json([
-                'status' => false,
-                'message' => "Invalid Password",
-            ], 401);
-        }
-
-        } catch (\Throwable $th) {
+            // Auth attempt 
+            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+                $Authuser = Auth::user();
+                return response()->json([
+                    'status' => "Success",
+                    'message' => "User login successfully",
+                    'token' => $Authuser->createToken('auth_token')->plainTextToken,
+                    'token_type' => 'bearer',
+                ], 200);
+            } else {
+                return $this->error(null, "Invalid Email or Password", 401);
+            }
+        } catch (\Throwable $e) {
             //throw $th;
-             if ($userValidate->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User are un athenciate',
-                'errors' => $userValidate->errors()->all(),
-            ], 404);
-        }
-
-             return response()->json([
-                'status' => false,
-                'message' => 'Email password does not match',
-                'errors' => $userValidate->errors()->all(),
-            ], 404);
+            Log::error("User Registration Failed", ['message' => $e->getMessage()]);
+            return $this->error(null, "User Registration Failed", 500);
         }
     }
 
@@ -96,21 +68,13 @@ class AuthController extends Controller
         try {
             $request->user()->tokens()->delete();
             Log::info("User Logout Successfully", ['user_id' => $request->user()->id]);
-            return response()->json([
-                'status' => true,
-                'message' => 'Logout successfully',
-            ], 200);
-
-            
+            return $this->success(null, "User logged out successfully");
         } catch (\Throwable $th) {
             Log::error('Error during logout', [
-            'message' => $th->getMessage(),
-        ]);
-            return response()->json([
-                'status' => false,
-                'message' => "Some thing went worong", 
+                'message' => $th->getMessage(),
+            ]);
 
-            ],500);
+            return $this->error(null, "Some thing went worong", 500);
         }
     }
 }

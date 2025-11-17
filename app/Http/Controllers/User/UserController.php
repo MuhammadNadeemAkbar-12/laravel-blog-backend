@@ -106,9 +106,8 @@ class UserController extends Controller{
     // pagination limit 6 users 
     public function userOwnTaskPagination()
     {
-        $user_id = Auth::id();
         try {
-            $task = Task::where('user_id', $user_id)->orderBy('created_at', 'DESC')
+            $task = Task::where('user_id', Auth::id())->orderBy('created_at', 'DESC')
                 ->limit(6)
                 ->get();
 
