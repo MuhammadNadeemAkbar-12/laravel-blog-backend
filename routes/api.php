@@ -13,7 +13,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RolePermissionsController;
 
 // Auth routes
-Route::post('/signup', [AuthController::class, "signup"]);
+Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/login', [AuthController::class, "login"]);
 
 // Protected routes (require token)
@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('/user')->group(function () {
         Route::get('/notifications', [NotificationController::class, 'userNotification']);
         Route::get('/profile', [UserController::class, 'userProfile']);
-        Route::post('/owntaskpagination', [UserController::class, "userOwnTaskPagination"]);
+        Route::get('/owntaskpagination', [UserController::class, "userOwnTaskPagination"]);
         Route::post('/delete-task/{id}', [UserController::class, 'deleteTask']);
         Route::post('/add-task', [UserController::class, 'addNewTask']);
         Route::get('/own-task', [UserController::class, 'userOwnTask']);
