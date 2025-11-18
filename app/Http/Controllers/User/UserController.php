@@ -16,6 +16,10 @@ class UserController extends Controller{
 
     use ApiResponse;
 
+
+
+
+
     // add new task 
     public function addNewTask(TaskUpdateRequest $request){
     try {
@@ -107,9 +111,7 @@ class UserController extends Controller{
     public function userOwnTaskPagination()
     {
         try {
-            $task = Task::where('user_id', Auth::id())->orderBy('created_at', 'DESC')
-                ->limit(6)
-                ->get();
+            $task = Task::where('user_id', Auth::id())->orderBy('created_at', 'DESC')->limit(6)->get();
 
             Log::info("User Task Fectched Successfully");
             return $this->success($task, "Task Fectched Successfully");

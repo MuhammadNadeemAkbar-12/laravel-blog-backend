@@ -12,7 +12,7 @@ class UsersSeeder extends Seeder
     {
         DB::table('users')->insert([
             [
-                'role_id' => 1, // Regular User
+                'role_id' => 1, // User
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
                 'email_verified_at' => now(),
