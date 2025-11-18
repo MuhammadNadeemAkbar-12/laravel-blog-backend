@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Task extends Model
 {
     use SoftDeletes;
+
+    protected $table = 'tasks';
+    
      protected $fillable = [
         'user_id',
         'task_name',
@@ -18,8 +21,21 @@ class Task extends Model
         'is_deleted',
         'updated_at',
         'deleted_at',
-        
-
-
     ];
+
+    // one to one 
+    public function user() {
+        return $this->belongsTo(User::class, "user_id");
+    }
+
+    // one to many relationship with comments
+ public function comments()
+{
+    return $this->hasMany(Comment::class, 'task_id')->orderBy('created_at', 'desc');
+}
+
+    
+
+
+
 }

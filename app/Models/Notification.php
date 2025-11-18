@@ -16,4 +16,10 @@ class Notification extends Model
     protected $casts = [
         'is_read' => 'datetime',
     ];
+
+    // one to one user
+    public function user() {
+        return $this->belongsTo(User::class, "user_id");   
+    }
+    
 }

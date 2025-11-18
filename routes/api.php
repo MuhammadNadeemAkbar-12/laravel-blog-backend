@@ -11,6 +11,7 @@ use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RolePermissionsController;
+use App\Http\Controllers\User\CommentController;
 
 // Auth routes
 Route::post('/signup', [AuthController::class, 'signup']);
@@ -29,6 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/add-task', [UserController::class, 'addNewTask']);
         Route::get('/own-task', [UserController::class, 'userOwnTask']);
         Route::post('/task-edit/{id}', [UserController::class, 'editTask']);
+        Route::get('/get/all-comments', [CommentController::class, 'getallComments']);
+        Route::get('/single-task/{id}', [CommentController::class, 'getCommentsByTaskId']);
+        Route::get('/all-tasks-comments', [CommentController::class, 'getUserComments']);
+        Route::post('/add-comment', [CommentController::class, 'addComment']);
+        Route::delete('/comments/{id}', [CommentController::class, 'deleteComment']);
+
     });
     
     // admin 
